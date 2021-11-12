@@ -16,6 +16,11 @@ abstract class Controller
 
     }
 
+    public static function db()
+    {
+      return new \App\Database\Database();
+    }
+
     public function jsonRequest($request){
       return json_decode($request->getBody(),true);
     }

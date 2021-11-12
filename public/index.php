@@ -70,6 +70,20 @@ $app->group('/account', function (RouteCollectorProxy $group) {
 //courses routes
 $app->group('/courses', function (RouteCollectorProxy $group) {
 
+  $group->get('/','\App\Controller\CoursesController:listCourses');
+
+  $group->get('/{course_slug}','\App\Controller\CoursesController:getCourse');
+
+  $group->post('/{course_slug}/enroll','\App\Controller\CoursesController:courseEnroll')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run");
+
+  $group->post('/{course_slug}/unenroll','\App\Controller\CoursesController:courseUnenroll')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run");
+
+  $group->get('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}','\App\Controller\CoursesController:level')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run");
+
+  $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/saveDraft','\App\Controller\CoursesController:saveDraft')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
+      "code" //TODO: Length limit?
+  ]), $handler));;
+
 
 });
 
@@ -77,8 +91,8 @@ $app->group('/courses', function (RouteCollectorProxy $group) {
 
 
 //Error handler
-$errorMiddleware = $app->addErrorMiddleware(true, true, true);
-$errorMiddleware->setDefaultErrorHandler('App\Controller\ErrorController:errorHandler');
+//$errorMiddleware = $app->addErrorMiddleware(true, true, true);
+//$errorMiddleware->setDefaultErrorHandler('App\Controller\ErrorController:errorHandler');
 
 //Kick things off!
 $app->run();

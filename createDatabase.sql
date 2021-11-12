@@ -26,6 +26,7 @@ CREATE TABLE sessions(
 	created VARCHAR(255),
 	last_activity VARCHAR(255),
 	ip VARCHAR(255),
+	ip_location VARCHAR(255),
 	device VARCHAR(255),
 	token VARCHAR(255)
 );
@@ -38,7 +39,8 @@ CREATE TABLE login_requests(
 );
 
 CREATE TABLE courses(
-	course_slug VARCHAR(101) PRIMARY KEY,
+	course_id BIGINT PRIMARY KEY,
+	course_slug VARCHAR(255),
 	title VARCHAR(101),
 	description MEDIUMTEXT,
 	thumbnail VARCHAR(255),
@@ -48,36 +50,37 @@ CREATE TABLE courses(
 );
 
 CREATE TABLE course_languages(
-	course_slug VARCHAR(101),
+	course_id BIGINT,
 	language VARCHAR(255),
-	PRIMARY KEY (course_slug, language)
-);
-
-CREATE TABLE course_enrollments(
-	course_slug VARCHAR(101),
-	user_id VARCHAR(255),
-	PRIMARY KEY (course_slug, user_id)
+	PRIMARY KEY (course_id, language)
 );
 
 CREATE TABLE course_authors(
-	course_slug VARCHAR(101),
+	course_id BIGINT,
 	user_id VARCHAR(255),
-	PRIMARY KEY (course_slug, user_id)
+	PRIMARY KEY (course_id, user_id)
+);
+
+CREATE TABLE course_enrollments(
+	course_id BIGINT,
+	user_id VARCHAR(255),
+	PRIMARY KEY (course_id, user_id)
 );
 
 CREATE TABLE chapters(
-	chapter_slug VARCHAR(101),
-	course_slug VARCHAR(101),
+	chapter_id BIGINT,
+	chapter_slug VARCHAR(255),
+	course_id BIGINT,
 	title VARCHAR(255),
 	description MEDIUMTEXT,
-	PRIMARY KEY (course_slug, chapter_slug)
+	PRIMARY KEY (course_id, chapter_id)
 );
 
-CREATE TABLE level(
+CREATE TABLE levels(
 	level_id BIGINT PRIMARY KEY,
 	level_slug VARCHAR(101),
-	chapter_slug VARCHAR(101),
-	course_slug VARCHAR(101),
+	chapter_id BIGINT,
+	course_id BIGINT,
 	title VARCHAR(255),
 	difficulty VARCHAR(255),
 	xp BIGINT,
@@ -111,7 +114,7 @@ CREATE TABLE level_complete(
 	PRIMARY KEY (level_id, user_id)
 );
 
-CREATE TABLE level_complete(
+CREATE TABLE level_drafts(
 	level_id BIGINT,
 	user_id BIGINT,
 	code LONGTEXT,
@@ -162,7 +165,7 @@ CREATE TABLE messages(
 	edited VARCHAR(5),
 	sent_timestamp VARCHAR(255),
 	edited_timestamp VARCHAR(255),
-	reply_to BIGINT
+	reply_to VARCHAR(255)
 );
 
 CREATE TABLE message_votes(
@@ -189,4 +192,11 @@ CREATE TABLE leaderboard_items(
 	user_id BIGINT,
 	val BIGINT,
 	PRIMARY KEY (leaderboard_id, user_id)
+);
+
+CREATE TABLE notifications(
+	notification_id BIGINT PRIMARY KEY,
+	user_id BIGINT,
+	timestamp VARCHAR(255),
+	notification_data MEDIUMTEXT
 );

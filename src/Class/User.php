@@ -23,9 +23,15 @@
           }
       }
 
-      public function sendResetEmail(){
-
+      public function basicInfo()
+      {
+          return [
+            "user_id" => $this->user['user_id'],
+            "username" => $this->user['username']
+          ];
       }
+
+
 
       public function sendVerificationEmail()
       {
@@ -66,6 +72,16 @@
                 "status"=>"success"
               ];
           }
+      }
+
+      public function sendNotification($notificationData)
+      {
+          $this->db()->insert('notifications',[
+            "notification_id"=>rand(1000000000, 9999999999),
+            "user_id"=>$this->user['user_id'],
+            "timestamp"=>time(),
+            "notification_data"=>json_encode($notificationData)
+          ]);
       }
 
   }
