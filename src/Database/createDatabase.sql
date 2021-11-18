@@ -10,7 +10,7 @@ CREATE TABLE accounts(
 	last_verification_email_sent VARCHAR(255),
 	last_reset_email_sent VARCHAR(255),
 	account_active VARCHAR(5),
-	registration_timestamp VARCHAR(255),
+	registration_timestamp BIGINT,
 	xp BIGINT,
 	show_email VARCHAR(5),
 	twitter VARCHAR(16),
@@ -33,7 +33,7 @@ CREATE TABLE sessions(
 
 CREATE TABLE login_requests(
 	user_id	BIGINT,
-	timestamp VARCHAR(255),
+	timestamp BIGINT,
 	ip VARCHAR(255),
 	PRIMARY KEY (user_id, timestamp)
 );
@@ -109,7 +109,7 @@ CREATE TABLE level_forfeit(
 CREATE TABLE level_complete(
 	level_id BIGINT,
 	user_id BIGINT,
-	timestamp varchar(255),
+	timestamp BIGINT,
 	xp BIGINT,
 	PRIMARY KEY (level_id, user_id)
 );
@@ -118,7 +118,7 @@ CREATE TABLE level_drafts(
 	level_id BIGINT,
 	user_id BIGINT,
 	code LONGTEXT,
-	timestamp VARCHAR(255),
+	timestamp BIGINT,
 	PRIMARY KEY (level_id, user_id)
 );
 
@@ -132,7 +132,7 @@ CREATE TABLE solutions(
 	level_id BIGINT,
 	solution_id BIGINT,
 	user_id BIGINT,
-	timestamp VARCHAR(255),
+	timestamp BIGINT,
 	code LONGTEXT,
 	PRIMARY KEY (level_id, solution_id)
 );
@@ -163,8 +163,8 @@ CREATE TABLE messages(
 	user_id BIGINT,
 	message_content MEDIUMTEXT,
 	edited VARCHAR(5),
-	sent_timestamp VARCHAR(255),
-	edited_timestamp VARCHAR(255),
+	sent_timestamp BIGINT,
+	edited_timestamp BIGINT,
 	reply_to VARCHAR(255)
 );
 
@@ -197,6 +197,6 @@ CREATE TABLE leaderboard_items(
 CREATE TABLE notifications(
 	notification_id BIGINT PRIMARY KEY,
 	user_id BIGINT,
-	timestamp VARCHAR(255),
+	timestamp BIGINT,
 	notification_data MEDIUMTEXT
 );

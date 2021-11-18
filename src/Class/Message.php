@@ -42,7 +42,7 @@
           }
       }
 
-      public function getVotes()
+      public function get_votes()
       {
           if ($this->votes == null) {
               $this->votes = $this->db()->select('message_votes', ['message_votes'], ['message_id'=>$this->message_id]);
@@ -51,7 +51,7 @@
           return $this->votes;
       }
 
-      public function getTags()
+      public function get_tags()
       {
           if ($this->tags == null) {
               $this->tags = $this->db()->select('message_tags', ['message_tags'], ['message_id'=>$this->message_id]);
@@ -84,6 +84,7 @@
       public function delete()
       {
           $this->db()->delete('messages', ['message_id'=>$this->message_id]);
+          $this->db()->delete('messages', ['reply_to'=>$this->message_id]);
           $this->db()->delete('message_votes', ['message_id'=>$this->message_id]);
           $this->db()->delete('message_tags', ['message_id'=>$this->message_id]);
       }
@@ -106,6 +107,9 @@
 
           foreach ($tags as $tag) {
               if ((new \App\Class\User($tag))->userExists == true) {
+
+                  //TODO: add notifications
+
                   self::db()->insert('message_tags', [
                     "message_id"=>$message_id,
                     "user_id"=>$tag

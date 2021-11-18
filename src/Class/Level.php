@@ -22,7 +22,6 @@
       private $unit_tests;
       public $feedback_test;
       private $solutions;
-      private $messages;
 
       protected static function db()
       {
@@ -32,7 +31,7 @@
 
       public function __construct($level_id)
       {
-          $level = $this->db()->query("SELECT level_id,title,level_slug,difficulty,language,xp,feedback_test FROM levels WHERE level_id=?", [$level_id]);
+          $level = $this->db()->query("SELECT level_id,title,level_slug,difficulty,language,xp,feedback_test,course_id,chapter_id FROM levels WHERE level_id=?", [$level_id]);
 
           if (count($level) < 1) {
               $this->level_exists = false;
@@ -144,9 +143,6 @@
 
       public function get_messages($since=0)
       {
-          if ($this->messages == null) {
-              $this->messages = array_map(fn ($e) => (new \App\Class\Message($e['message_id'])), $this->db()->query('SELECT message_id FROM Messages WHERE sent_timestamp>? AND level_id=?', [$since,$this->level_id]));
-          }
-          return($this->messages);
+          return array_map(fn ($e) => (new \App\Class\Message($e['message_id'])), $this->db()->query('SELECT message_id FROM Messages WHERE edited_timestamp>=? AND level_id=?', [$since,$this->level_id]));
       }
   }

@@ -30,6 +30,7 @@ abstract class Controller
       $response = new Response;
       $response->getBody()->write(json_encode($data));
       return $response->withHeader('Content-type', 'application/json');
+
     }
 
 }

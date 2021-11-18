@@ -41,7 +41,7 @@
               $votes = [];
               foreach ($voteResults as $v) {
                   $votes[] = [
-                      "user" => $v['user_id'],
+                      "user_id" => $v['user_id'],
                       "vote" => $v['vote']
                     ];
               }
@@ -69,7 +69,7 @@
 
               foreach ($solutionBadges as $b) {
                   $badges[array_search($b['badge_id'], $badges)]['votes'][] = [
-                  "user" => new \App\Class\User($b['user_id'])
+                  "user" => (new \App\Class\User($b['user_id']))->basicInfo()
                 ];
               }
 
@@ -92,7 +92,7 @@
               //Delete any existing votes for this badge by user
               $this->db()->delete('solution_badges', ["solution_id"=>$this->solution_id,"user_id"=>$user_id]);
 
-              if ($vote) {
+              if ($vote == 1) {
                   //If voting for, insert new vote into database
                   $this->db()->insert('solution_badges', ["solution_id"=>$this->solution_id,"user_id"=>$user_id,"badge_id"=>$badge_id]);
               }
@@ -116,6 +116,6 @@
           //Delete previous solution submissions
           self::db()->delete('solutions', ['level_id'=>$level_id,'user_id'=>$user_id]);
 
-          self::db()-insert('solutions', ['level_id'=>$level_id,'user_id'=>$user_id,'solution_id'=>$solution_id,'timestamp'=>time(),'code'=>$code]);
+          self::db()->insert('solutions', ['level_id'=>$level_id,'user_id'=>$user_id,'solution_id'=>$solution_id,'timestamp'=>time(),'code'=>$code]);
       }
   }
