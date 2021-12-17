@@ -89,6 +89,7 @@
                 "template"=>"EmailVerification",
                 "variables"=>[
                   "username"=>$this->user['username'],
+                  "email"=>$this->user['email'],
                   "ip"=>\App\Class\Security::getUserIP(),
                   "ip_location"=>\App\Class\Security::getUserLocation(),
                   "device"=>\App\Class\Security::getUserAgent(),

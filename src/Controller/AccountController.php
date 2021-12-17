@@ -78,7 +78,7 @@ class AccountController extends Controller
     public function resendVerificationEmail(Request $request)
     {
         $json = $this->jsonRequest($request);
-        $user = new \App\Class\User($json['email']);
+        $user = new \App\Class\User($json['identifier']);
 
         if (!$user->userExists) {
             return $this->jsonResponse([
@@ -106,7 +106,7 @@ class AccountController extends Controller
             //Verification token expires after 15 mins
             return $this->jsonResponse([
               "status"=>"fail",
-              "error_message"=>"Verification link expires"
+              "error_message"=>"Verification link expired"
             ]);
         } else {
 
@@ -167,14 +167,6 @@ class AccountController extends Controller
             ]);
         }
 
-        if ($user->user['email_verified'] == "false") {
-            return $this->jsonResponse([
-              "status"=>"fail",
-              "email_verify"=>true,
-              "error_message"=>"You must verify your email before logging-in"
-            ]);
-        }
-
         //Remove failed login requests older than 10 mins
         $db->query('DELETE FROM login_requests WHERE timestamp < ' . (time() - 600));
 
@@ -182,7 +174,7 @@ class AccountController extends Controller
         $failedLogins = $db->query('SELECT * FROM login_requests WHERE user_id=? OR ip=?', [$user->user['user_id'],\App\Class\Security::getUserIP()]);
 
         //More than 30 failed logins in last 10 minutes, block further requests
-        if (count($failedLogins) > 5) {
+        if (count($failedLogins) > 30) {
             return $this->jsonResponse([
               "status"=>"fail",
               "error_message"=>"Account temporarily locked for security reasons. Please try again in 10 minutes."
@@ -202,13 +194,21 @@ class AccountController extends Controller
               "status"=>"fail",
               "error_message"=>"Incorrect username, email or password"
             ]);
-        } else {
-            \App\Class\Session::newSession($user->user['user_id']);
+        }
 
+        if ($user->user['email_verified'] == "false") {
             return $this->jsonResponse([
-              "status"=>"success",
+              "status"=>"fail",
+              "email_verify"=>true,
+              "error_message"=>"You must verify your email before logging-in"
             ]);
         }
+
+        \App\Class\Session::newSession($user->user['user_id']);
+
+        return $this->jsonResponse([
+              "status"=>"success",
+            ]);
     }
 
 
@@ -337,6 +337,7 @@ class AccountController extends Controller
           "template"=>"PasswordReset",
           "variables"=>[
             "username"=>$user->user['username'],
+            "email"=>$user->user['email'],
             "ip"=>\App\Class\Security::getUserIP(),
             "ip_location"=>\App\Class\Security::getUserLocation(),
             "device"=>\App\Class\Security::getUserAgent(),

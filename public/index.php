@@ -12,6 +12,17 @@ require __DIR__ . '/../env.php';
 
 $app = AppFactory::create();
 
+$app->options('/{routes:.+}', function ($request, $response, $args) {
+    return $response;
+});
+
+$app->add(function ($request, $handler) {
+    $response = $handler->handle($request);
+    return $response
+            ->withHeader('Access-Control-Allow-Origin', 'localhost')
+            ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
+            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+});
 
 
 //Account routes
@@ -24,7 +35,7 @@ $app->group('/account', function (RouteCollectorProxy $group) {
     ]), $handler));
 
     $group->post('/resendVerificationEmail', '\App\Controller\AccountController:resendVerificationEmail')->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
-        "email" => fn ($e) => filter_var($e, FILTER_VALIDATE_EMAIL) && strlen($e) <= 50, //Email
+        "identifier" => fn ($e) => strlen($e) <= 50, //Email or username
     ]), $handler));
 
     $group->post('/verifyEmail', '\App\Controller\AccountController:verifyEmail')->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
@@ -32,7 +43,7 @@ $app->group('/account', function (RouteCollectorProxy $group) {
         "verification_token" => "/^[A-Za-z0-9]{1,100}$/"
     ]), $handler));
 
-    $group->get('/usernameAvailable/{username}','\App\Controller\AccountController:usernameAvailable');
+    $group->get('/usernameAvailable/{username}', '\App\Controller\AccountController:usernameAvailable');
 
     $group->post('/login', '\App\Controller\AccountController:login')->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
         "identifier",
@@ -40,7 +51,7 @@ $app->group('/account', function (RouteCollectorProxy $group) {
         "recaptcha_token"
     ]), $handler));
 
-    $group->get('/details','\App\Controller\AccountController:accountDetails')->add("\App\Class\Session:sessionMiddleware");
+    $group->get('/details', '\App\Controller\AccountController:accountDetails')->add("\App\Class\Session:sessionMiddleware");
 
     $group->post('/logout', '\App\Controller\AccountController:logout')->add("\App\Class\Session:sessionMiddleware");
 
@@ -63,48 +74,46 @@ $app->group('/account', function (RouteCollectorProxy $group) {
     $group->post('/changeUsername', '\App\Controller\AccountController:changeUsername')->add("\App\Class\Session:sessionMiddleware")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
         "username" => "/^(?=.*?[a-z])[a-z0-9]{1,20}$/", //username - alphanumeric 1-20 characters, at least 1 letter
     ]), $handler));
-
 });
 
 
 //courses routes
 $app->group('/courses', function (RouteCollectorProxy $group) {
+    $group->get('/', '\App\Controller\CoursesController:listCourses');
 
-  $group->get('/','\App\Controller\CoursesController:listCourses');
+    $group->get('/{course_slug}', '\App\Controller\CoursesController:getCourse');
 
-  $group->get('/{course_slug}','\App\Controller\CoursesController:getCourse');
+    $group->post('/{course_slug}/enroll', '\App\Controller\CoursesController:courseEnroll')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run");
 
-  $group->post('/{course_slug}/enroll','\App\Controller\CoursesController:courseEnroll')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run");
+    $group->post('/{course_slug}/unenroll', '\App\Controller\CoursesController:courseUnenroll')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run");
 
-  $group->post('/{course_slug}/unenroll','\App\Controller\CoursesController:courseUnenroll')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run");
+    $group->get('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}', '\App\Controller\CoursesController:level')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run");
 
-  $group->get('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}','\App\Controller\CoursesController:level')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run");
-
-  $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/saveDraft','\App\Controller\CoursesController:saveDraft')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
+    $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/saveDraft', '\App\Controller\CoursesController:saveDraft')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
       "code" //TODO: Length limit?
   ]), $handler));
 
-  $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/markComplete','\App\Controller\CoursesController:markComplete')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run");
+    $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/markComplete', '\App\Controller\CoursesController:markComplete')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run");
 
 
-  //solutions routes
-  $group->get('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/solutions','\App\Controller\CoursesController:solutions')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run");
+    //solutions routes
+    $group->get('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/solutions', '\App\Controller\CoursesController:solutions')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run");
 
-  $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/solutions/submit','\App\Controller\CoursesController:submitSolution')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
+    $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/solutions/submit', '\App\Controller\CoursesController:submitSolution')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
       "code" //TODO: Length limit?
   ]), $handler));
 
-  $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/solutions/vote','\App\Controller\CoursesController:voteSolution')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
+    $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/solutions/vote', '\App\Controller\CoursesController:voteSolution')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
       "solution_id" => "/^[0-9]{8,20}$/",
       "vote_type",
-      "vote" => fn($e) => $e==0 || $e==1 || $e==-1
+      "vote" => fn ($e) => $e==0 || $e==1 || $e==-1
   ]), $handler));
 
 
-  //messages routes
-  $group->get('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/messages/{since}','\App\Controller\CoursesController:messages')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run");
+    //messages routes
+    $group->get('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/messages/{since}', '\App\Controller\CoursesController:messages')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run");
 
-  $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/messages/send','\App\Controller\CoursesController:sendMessage')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
+    $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/messages/send', '\App\Controller\CoursesController:sendMessage')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
       "reply_to" => [
         "checker"=>"/^[0-9]{8,20}$/",
         "optional"=>true
@@ -112,27 +121,26 @@ $app->group('/courses', function (RouteCollectorProxy $group) {
       "message_content"
   ]), $handler));
 
-  $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/messages/edit','\App\Controller\CoursesController:editMessage')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
+    $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/messages/edit', '\App\Controller\CoursesController:editMessage')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
       "message_id" => "/^[0-9]{8,20}$/",
       "message_content"
   ]), $handler));
 
 
-  $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/messages/vote','\App\Controller\CoursesController:voteMessage')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
+    $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/messages/vote', '\App\Controller\CoursesController:voteMessage')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
       "message_id" => "/^[0-9]{8,20}$/",
-      "vote" => fn($e) => $e==0 || $e==-1 || $e==1
+      "vote" => fn ($e) => $e==0 || $e==-1 || $e==1
   ]), $handler));
 
-  $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/messages/delete','\App\Controller\CoursesController:deleteMessage')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
+    $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/messages/delete', '\App\Controller\CoursesController:deleteMessage')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
       "message_id" => "/^[0-9]{8,20}$/"
   ]), $handler));
-
 });
 
 
-$app->get('/profile/{username}','\App\Controller\MiscellaneousController:profile');
+$app->get('/profile/{username}', '\App\Controller\MiscellaneousController:profile');
 
-$group->post('/profile/edit','\App\Controller\MiscellaneousController:editProfile')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
+$app->post('/profile/edit', '\App\Controller\MiscellaneousController:editProfile')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
     "twitter" => [
       "checker" => "/^[a-z0-9_]{4,15}$/",
       "optional" => true
@@ -146,7 +154,7 @@ $group->post('/profile/edit','\App\Controller\MiscellaneousController:editProfil
       "optional" => true
     ],
     "website" => [
-      "checker" => fn($e) => strlen($e)<=200 && filter_var($e, FILTER_VALIDATE_URL),
+      "checker" => fn ($e) => strlen($e)<=200 && filter_var($e, FILTER_VALIDATE_URL),
       "optional" => true
     ],
     "location" => [
@@ -154,15 +162,15 @@ $group->post('/profile/edit','\App\Controller\MiscellaneousController:editProfil
       "optional" => true
     ],
     "show_email" => [
-      "checker" => fn($e) => is_bool($e),
+      "checker" => fn ($e) => is_bool($e),
       "optional" => true
     ]
 ]), $handler));
 
 
 //Error handler
-//$errorMiddleware = $app->addErrorMiddleware(true, true, true);
-//$errorMiddleware->setDefaultErrorHandler('App\Controller\ErrorController:errorHandler');
+$errorMiddleware = $app->addErrorMiddleware(true, true, true);
+$errorMiddleware->setDefaultErrorHandler('App\Controller\ErrorController:errorHandler');
 
 //Kick things off!
 $app->run();
