@@ -233,6 +233,7 @@ class AccountController extends Controller
         return $this->jsonResponse([
         "status"=>"success",
         "username"=>$user->user['username'],
+        "user_id"=>$user->user['user_id'],
         "email"=>$user->user['email'],
         "xp"=>$user->user['xp'],
         "joined"=>$user->user['registration_timestamp'],

@@ -113,7 +113,7 @@
       {
           $draft = $this->db()->select('level_drafts', ['level_id'=>$this->level_id,'user_id'=>$user_id]);
           if (count($draft) < 1) {
-              return "";
+              return ["code"=>"","timestamp"=>0];
           } else {
               return $draft[0];
           }
@@ -143,6 +143,6 @@
 
       public function get_messages($since=0)
       {
-          return array_map(fn ($e) => (new \App\Class\Message($e['message_id'])), $this->db()->query('SELECT message_id FROM Messages WHERE edited_timestamp>=? AND level_id=?', [$since,$this->level_id]));
+          return array_map(fn ($e) => (new \App\Class\Message($e['message_id'])), $this->db()->query('SELECT message_id FROM Messages WHERE changed_timestamp>? AND level_id=?', [$since,$this->level_id]));
       }
   }

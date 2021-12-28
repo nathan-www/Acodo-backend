@@ -162,9 +162,9 @@ CREATE TABLE messages(
 	level_id BIGINT,
 	user_id BIGINT,
 	message_content MEDIUMTEXT,
-	edited VARCHAR(5),
 	sent_timestamp BIGINT,
 	edited_timestamp BIGINT,
+	changed_timestamp BIGINT,
 	reply_to VARCHAR(255)
 );
 

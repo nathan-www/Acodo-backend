@@ -57,7 +57,7 @@
               $availableBadges = $this->db()->query('SELECT * FROM available_badges');
               $badges = [];
               foreach ($availableBadges as $b) {
-                  $badges[] = [
+                  $badges[$b['badge_id']] = [
                   "badge_id" => $b['badge_id'],
                   "icon" => $b['icon'],
                   "name" => $b['name'],
@@ -68,12 +68,12 @@
               $solutionBadges = $this->db()->select('solution_badges', ["solution_id" => $this->solution_id]);
 
               foreach ($solutionBadges as $b) {
-                  $badges[array_search($b['badge_id'], $badges)]['votes'][] = [
+                  $badges[$b['badge_id']]['votes'][] = [
                   "user" => (new \App\Class\User($b['user_id']))->basicInfo()
                 ];
               }
 
-              $this->badges = $badges;
+              $this->badges = array_values($badges);
           }
 
           return $this->badges;
@@ -90,7 +90,7 @@
 
           if ($badge_available) {
               //Delete any existing votes for this badge by user
-              $this->db()->delete('solution_badges', ["solution_id"=>$this->solution_id,"user_id"=>$user_id]);
+              $this->db()->delete('solution_badges', ["solution_id"=>$this->solution_id,"user_id"=>$user_id,"badge_id"=>$badge_id]);
 
               if ($vote == 1) {
                   //If voting for, insert new vote into database

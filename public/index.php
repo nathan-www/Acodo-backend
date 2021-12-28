@@ -10,6 +10,10 @@ require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../env.php';
 
 
+//!!!!!!!!
+//TODO: CSRF
+//!!!!!!!
+
 $app = AppFactory::create();
 
 $app->options('/{routes:.+}', function ($request, $response, $args) {
@@ -90,7 +94,7 @@ $app->group('/courses', function (RouteCollectorProxy $group) {
     $group->get('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}', '\App\Controller\CoursesController:level')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run");
 
     $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/saveDraft', '\App\Controller\CoursesController:saveDraft')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
-      "code" //TODO: Length limit?
+      "code" => "/^[A-Za-z0-9+=\/]{1,30000}$/" //Base64 - max 30k characters
   ]), $handler));
 
     $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/markComplete', '\App\Controller\CoursesController:markComplete')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run");
@@ -100,12 +104,13 @@ $app->group('/courses', function (RouteCollectorProxy $group) {
     $group->get('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/solutions', '\App\Controller\CoursesController:solutions')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run");
 
     $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/solutions/submit', '\App\Controller\CoursesController:submitSolution')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
-      "code" //TODO: Length limit?
+      "code" => "/^[A-Za-z0-9+=\/]{1,30000}$/", //Base64 - max 30k characters
+      "v" => "/^[A-Za-z0-9+=\/]{1,300}$/" //Base64 verification hash
   ]), $handler));
 
     $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/solutions/vote', '\App\Controller\CoursesController:voteSolution')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
       "solution_id" => "/^[0-9]{8,20}$/",
-      "vote_type",
+      "vote_type" => "/^[A-Za-z0-9]{1,10}$/",
       "vote" => fn ($e) => $e==0 || $e==1 || $e==-1
   ]), $handler));
 
@@ -118,12 +123,12 @@ $app->group('/courses', function (RouteCollectorProxy $group) {
         "checker"=>"/^[0-9]{8,20}$/",
         "optional"=>true
       ],
-      "message_content"
+      "message_content" => "/^[A-Za-z0-9+=\/]{1,10000}$/" //Base64 - max 10k characters
   ]), $handler));
 
     $group->post('/{course_slug}/chapters/{chapter_slug}/level/{level_slug}/messages/edit', '\App\Controller\CoursesController:editMessage')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
       "message_id" => "/^[0-9]{8,20}$/",
-      "message_content"
+      "message_content" => "/^[A-Za-z0-9+=\/]{1,10000}$/" //Base64 - max 10k characters
   ]), $handler));
 
 

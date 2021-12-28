@@ -37,7 +37,7 @@
       //Checks if current streak is valid
       public function isStreakValid()
       {
-        $streak_last_timestamp = $this->user['streak_last_timestamp']; //last streak renewal
+          $streak_last_timestamp = $this->user['streak_last_timestamp']; //last streak renewal
         $lastDoW = date('N', $streak_last_timestamp); //last streak renewal day of week (0-7)
         $nowDoW = date('N', time()); //current day of week (0-7)
 
@@ -47,19 +47,22 @@
       //Renew streak, eg. on completion of a level
       public function renewStreak()
       {
-        if(!$this->isStreakValid()){
-            //failed streak
-            $this->db()->update('accounts',['user_id'=>$this->user['user_id']],['streak_last_timestamp'=>time(),'streak_days'=>0]);
-          }
-          else{
+          if (!$this->isStreakValid()) {
+              //failed streak
+              $this->db()->update('accounts', ['user_id'=>$this->user['user_id']], ['streak_last_timestamp'=>time(),'streak_days'=>0]);
+          } else {
+
             //successful streak
-            $streak_days = $this->user['streak_days'];
-            if($lastDoW !== $nowDoW){
+              $streak_days = $this->user['streak_days'];
+              $streak_last_timestamp = $this->user['streak_last_timestamp']; //last streak renewal
+            $lastDoW = date('N', $streak_last_timestamp); //last streak renewal day of week (0-7)
+            $nowDoW = date('N', time()); //current day of week (0-7)
+
+            if ($lastDoW !== $nowDoW) {
                 $streak_days += 1;
             }
-            $this->db()->update('accounts',['user_id'=>$this->user['user_id']],['streak_last_timestamp'=>time(),'streak_days'=>$streak_days]);
+              $this->db()->update('accounts', ['user_id'=>$this->user['user_id']], ['streak_last_timestamp'=>time(),'streak_days'=>$streak_days]);
           }
-
       }
 
 
@@ -150,7 +153,7 @@
                   $solution = $this->db()->query('SELECT solutions.solution_id, solutions.timestamp, levels.level_id, levels.language, levels.level_slug, levels.title as level_title, levels.xp, chapters.chapter_slug, chapters.title as chapter_title, courses.course_slug, courses.title as course_title FROM solutions INNER JOIN levels ON solutions.level_id=levels.level_id INNER JOIN chapters ON levels.chapter_id=chapters.chapter_id INNER JOIN courses ON levels.course_id=courses.course_id WHERE solution_id=?', [$s['solution_id']])[0];
 
                   //Get alternative solutions, to calculate best solution
-                  $altSolutionsRes = $this->db()->query('SELECT solutions.solution_id, vote FROM solutions INNER JOIN solution_votes ON solutions.solution_id=solution_votes.solution_id WHERE level_id=?',[$solution['level_id']]);
+                  $altSolutionsRes = $this->db()->query('SELECT solutions.solution_id, vote FROM solutions INNER JOIN solution_votes ON solutions.solution_id=solution_votes.solution_id WHERE level_id=?', [$solution['level_id']]);
 
                   //Get badges for this solution
                   $badgesRes = $this->db()->query('SELECT * FROM solution_badges INNER JOIN available_badges ON solution_badges.badge_id=available_badges.badge_id WHERE solution_id=?', [$s['solution_id']]);
@@ -161,15 +164,14 @@
 
                   $altSolutions = [];
                   foreach ($altSolutionsRes as $as) {
-                      if(!isset($altSolutions[$as['solution_id']])){
-                        $altSolutions[$as['solution_id']] = 0;
+                      if (!isset($altSolutions[$as['solution_id']])) {
+                          $altSolutions[$as['solution_id']] = 0;
                       }
-                      if($as['solution_id'] == $solution['solution_id']){
-                          if($as['vote'] == 1){
-                            $upvotes += 1;
-                          }
-                          else{
-                            $downvotes += 1;
+                      if ($as['solution_id'] == $solution['solution_id']) {
+                          if ($as['vote'] == 1) {
+                              $upvotes += 1;
+                          } else {
+                              $downvotes += 1;
                           }
                       }
                       $altSolutions[$as['solution_id']] += $as['vote'];
@@ -198,7 +200,6 @@
                   $solution['solution_badges'] = array_values($badges);
 
                   return $solution;
-
               }, $this->db()->query("SELECT * FROM solutions WHERE user_id=? ORDER BY timestamp DESC", [$this->user['user_id']]));
           }
           return $this->solutions;

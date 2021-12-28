@@ -35,9 +35,9 @@
               $this->user = new \App\Class\User($this->db_row['user_id']);
               $this->message_id = $this->db_row['message_id'];
               $this->message_content = $this->db_row['message_content'];
-              $this->edited = ($this->db_row['edited'] == "true");
               $this->last_edited = $this->db_row['edited_timestamp'];
               $this->created = $this->db_row['sent_timestamp'];
+              $this->last_change = $this->db_row['changed_timestamp'];
               $this->reply_to = $this->db_row['reply_to'];
           }
       }
@@ -45,7 +45,7 @@
       public function get_votes()
       {
           if ($this->votes == null) {
-              $this->votes = $this->db()->select('message_votes', ['message_votes'], ['message_id'=>$this->message_id]);
+              $this->votes = $this->db()->select('message_votes', ['message_id'=>$this->message_id]);
           }
 
           return $this->votes;
@@ -65,8 +65,8 @@
           //Edit message content, plus set 'edited' to true and updated edited timestamp
           $this->db()->update('messages', ['message_id'=>$this->message_id], [
             "message_content"=>$newContent,
-            "edited"=>"true",
-            "edited_timestamp"=>time()
+            "edited_timestamp"=>time(),
+            "changed_timestamp"=>time()
           ]);
       }
 
@@ -79,6 +79,10 @@
           if ($vote == 1 || $vote == -1) {
               $this->db()->insert('message_votes', ['message_id'=>$this->message_id,'user_id'=>$user_id,'vote'=>$vote]);
           }
+
+          $this->db()->update('messages', ['message_id'=>$this->message_id], [
+              "changed_timestamp"=>time()
+          ]);
       }
 
       public function delete()
@@ -94,14 +98,16 @@
       {
           $message_id = rand(1000000000, 9999999999);
 
+          $currentTime = time();
+
           self::db()->insert('messages', [
             'message_id'=>$message_id,
             'level_id'=>$level_id,
             'user_id'=>$user_id,
             'message_content'=>$message_content,
-            'edited'=>'false',
-            'sent_timestamp'=>time(),
-            'edited_timestamp'=>time(),
+            'sent_timestamp'=>$currentTime,
+            'edited_timestamp'=>$currentTime,
+            'changed_timestamp'=>$currentTime,
             'reply_to'=>$reply_to
           ]);
 
