@@ -164,6 +164,9 @@ class CoursesController extends Controller
                 $xp_earned = 0;
             }
 
+            //Make sure user is enrolled on course
+            $this->db()->insert('course_enrollments',['course_id'=>$request->getAttribute('course_id'),'user_id'=>$request->getAttribute('user_id')]);
+
 
             $this->db()->insert('level_complete', ['level_id'=>$level->level_id,'user_id'=>$request->getAttribute('user_id'),'timestamp'=>time(),'xp'=>$xp_earned]);
             $this->db()->update('accounts', ['user_id'=>$user->user['user_id']], ['xp'=>($user->user['xp'] + $xp_earned)]);

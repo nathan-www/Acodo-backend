@@ -62,7 +62,8 @@ class AccountController extends Controller
           "xp"=>0,
           "show_email"=>"false",
           "streak_last_timestamp"=>0,
-          "streak_days"=>0
+          "streak_days"=>0,
+          "last_active_timestamp"=>time()
         ]);
 
         $user = new \App\Class\User($json['username']);

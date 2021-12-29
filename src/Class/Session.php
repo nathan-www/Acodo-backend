@@ -57,8 +57,12 @@ class Session
             ];
         }
 
-        //Update last activity in database
+        //Update last session activity in database
         self::db()->update('sessions', ['session_id'=>$_COOKIE['acodo_session_id']], ["last_activity"=>time()]);
+
+        //Update last account activity in database
+        self::db()->update('accounts', ['user_id'=>$session[0]['user_id']], ["last_active_timestamp"=>time()]);
+
 
         return [
           "authenticated"=>true,

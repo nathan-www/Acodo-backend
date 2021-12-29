@@ -60,6 +60,8 @@ use Slim\Exception\HttpSpecializedException;
             "username"=>$user->user['username'],
             "user_id"=>$user->user['user_id'],
             "xp"=>$user->user['xp'],
+            "joined_timestamp"=>$user->user['registration_timestamp'],
+            "last_seen"=>+$user->user['last_active_timestamp'],
             "courses"=>array_map(function($course) use ($user){
                 return [
                   "course_title"=>$course->title,

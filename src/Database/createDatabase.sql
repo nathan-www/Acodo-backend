@@ -17,7 +17,10 @@ CREATE TABLE accounts(
 	linkedin VARCHAR(101),
 	github VARCHAR(40),
 	website VARCHAR(50),
-	location VARCHAR(50)
+	location VARCHAR(50),
+	streak_last_timestamp VARCHAR(255),
+	streak_days VARCHAR(255),
+	last_active_timestamp VARCHAR(255)
 );
 
 CREATE TABLE sessions(
