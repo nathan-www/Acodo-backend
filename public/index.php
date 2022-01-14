@@ -145,7 +145,7 @@ $app->group('/courses', function (RouteCollectorProxy $group) {
 
 $app->get('/profile/{username}', '\App\Controller\MiscellaneousController:profile');
 
-$app->post('/profile/edit', '\App\Controller\MiscellaneousController:editProfile')->add("\App\Class\Session:sessionMiddleware")->add("\App\Middleware\SlugMiddleware:run")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
+$app->post('/editProfile', '\App\Controller\MiscellaneousController:editProfile')->add("\App\Class\Session:sessionMiddleware")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
     "twitter" => [
       "checker" => "/^[a-z0-9_]{4,15}$/",
       "optional" => true
@@ -155,7 +155,7 @@ $app->post('/profile/edit', '\App\Controller\MiscellaneousController:editProfile
       "optional" => true
     ],
     "github" => [
-      "checker" => "/^[a-z0-9-]{1,39}$/",
+      "checker" => "/^[a-z0-9-_]{1,39}$/",
       "optional" => true
     ],
     "website" => [
@@ -163,11 +163,15 @@ $app->post('/profile/edit', '\App\Controller\MiscellaneousController:editProfile
       "optional" => true
     ],
     "location" => [
-      "checker" => "/^[A-Za-z0-9- ]{1-25}$/",
+      "checker" => "/^[A-Za-z0-9- ,]{1-35}$/",
       "optional" => true
     ],
     "show_email" => [
       "checker" => fn ($e) => is_bool($e),
+      "optional" => true
+    ],
+    "delete_field" => [
+      "checker" => "/^(twitter|linkedin|github|website|location)$/",
       "optional" => true
     ]
 ]), $handler));

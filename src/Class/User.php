@@ -132,6 +132,9 @@
               }
           }
 
+          if(count($levels) == 0){
+            return 0;
+          }
           return ceil(($levels_complete_count/count($levels))*100);
       }
 

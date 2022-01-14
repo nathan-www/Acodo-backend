@@ -17,7 +17,18 @@ class CoursesController extends Controller
         $session = \App\Class\Session::getSession();
 
         $courses = [];
+
+        if($session['authenticated']){
+          $user = new \App\Class\User($session['session']['user_id']);
+        }
+
         foreach ($courseRows as $c) {
+
+            $progress = 0;
+            if($session['authenticated']){
+              $progress = $user->get_course_progress($c->course_id);
+            }
+
             $courses[] = [
             "course_title"=>$c->title,
             "course_slug"=>$c->slug,
@@ -28,6 +39,7 @@ class CoursesController extends Controller
             "authors"=>array_map(fn ($e) => $e->basicInfo(), $c->get_authors()),
             "total_xp"=>$c->total_xp,
             "duration_hours"=>$c->duration_hours,
+            "progress"=>$progress,
             "enrolled"=> $session['authenticated'] && in_array($session['session']['user_id'], $c->get_enrollments()),
             "total_enrollments" => count($c->get_enrollments())
           ];
