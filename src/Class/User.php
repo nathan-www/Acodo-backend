@@ -38,10 +38,10 @@
       public function isStreakValid()
       {
           $streak_last_timestamp = $this->user['streak_last_timestamp']; //last streak renewal
-        $lastDoW = date('N', $streak_last_timestamp); //last streak renewal day of week (0-7)
-        $nowDoW = date('N', time()); //current day of week (0-7)
+          $lastDoW = date('N', $streak_last_timestamp); //last streak renewal day of week (0-7)
+          $nowDoW = date('N', time()); //current day of week (0-7)
 
-        return (!(($streak_last_timestamp < time()-172800) || ($nowDoW == 0 && $lastDoW > $nowDoW && $lastDoW !== 7) || ($nowDoW > 0 && ($lastDoW < $nowDoW-1 || $lastDoW>$nowDoW))));
+          return (!(($streak_last_timestamp < time()-172800) || ($nowDoW == 0 && $lastDoW > $nowDoW && $lastDoW !== 7) || ($nowDoW > 0 && ($lastDoW < $nowDoW-1 || $lastDoW>$nowDoW))));
       }
 
       //Renew streak, eg. on completion of a level
@@ -132,8 +132,8 @@
               }
           }
 
-          if(count($levels) == 0){
-            return 0;
+          if (count($levels) == 0) {
+              return 0;
           }
           return ceil(($levels_complete_count/count($levels))*100);
       }

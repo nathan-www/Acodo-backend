@@ -105,7 +105,7 @@
           $this->db()->delete('solution_votes', ['solution_id'=>$this->solution_id,'user_id'=>$user_id]);
 
           if ($vote == 1 || $vote == -1) {
-              $this->db()->insert('solution_votes', ['solution_id'=>$this->solution_id,'user_id'=>$user_id,'vote'=>$vote]);
+              $this->db()->insert('solution_votes', ['solution_id'=>$this->solution_id,'user_id'=>$user_id,'vote'=>$vote,'timestamp'=>time()]);
           }
       }
 

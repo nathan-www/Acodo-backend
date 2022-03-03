@@ -72,6 +72,7 @@ class CoursesController extends Controller
                       return ([$level->slug => [
                       "level_title" => $level->title,
                       "level_slug" => $level->slug,
+                      "difficulty" => $level->difficulty,
                       "complete" => $session['authenticated'] && in_array($session['session']['user_id'], $level->get_completions()),
                     ]]);
                   }, $chapter->get_levels()))
@@ -205,10 +206,11 @@ class CoursesController extends Controller
               $user_vote = array_filter($solution->get_votes(), function ($e) use ($request) {
                   return ($e['user_id']==$request->getAttribute('user_id'));
               });
+
               if (count($user_vote) < 1) {
                   $user_vote = 0;
               } else {
-                  $user_vote = +$user_vote[0]['vote'];
+                  $user_vote = +array_values($user_vote)[0]['vote'];
               }
 
               return [

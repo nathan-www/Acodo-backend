@@ -144,6 +144,7 @@ CREATE TABLE solution_votes(
 	solution_id BIGINT,
 	user_id BIGINT,
 	vote VARCHAR(10),
+	timestamp BIGINT,
 	PRIMARY KEY (solution_id, user_id)
 );
 
@@ -201,5 +202,6 @@ CREATE TABLE notifications(
 	notification_id BIGINT PRIMARY KEY,
 	user_id BIGINT,
 	timestamp BIGINT,
+	has_read VARCHAR(255),
 	notification_data MEDIUMTEXT
 );

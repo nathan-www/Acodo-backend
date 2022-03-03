@@ -143,7 +143,12 @@ $app->group('/courses', function (RouteCollectorProxy $group) {
 });
 
 
+$app->get('/unread-notifications','\App\Controller\MiscellaneousController:unreadNotifications')->add("\App\Class\Session:sessionMiddleware");
+$app->get('/list-notifications','\App\Controller\MiscellaneousController:listNotifications')->add("\App\Class\Session:sessionMiddleware");
+
+
 $app->get('/profile/{username}', '\App\Controller\MiscellaneousController:profile');
+$app->get('/leaderboards', '\App\Controller\LeaderBoardController:leaderboard');
 
 $app->post('/editProfile', '\App\Controller\MiscellaneousController:editProfile')->add("\App\Class\Session:sessionMiddleware")->add(fn ($request, $handler) => App\Middleware\ParameterCheckerMiddleware::run($request->withAttribute('params', [
     "twitter" => [

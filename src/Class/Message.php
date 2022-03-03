@@ -98,6 +98,14 @@
       {
           $message_id = rand(1000000000, 9999999999);
 
+          $sender = new \App\Class\User($user_id);
+          $subtitle = strip_tags(base64_decode(base64_decode($message_content)));
+          $level_path = (new \App\Class\Level($level_id))->get_path();
+
+          if(strlen($subtitle) > 95){
+              $subtitle = substr($subtitle,0,95) . "...";
+          }
+
           $currentTime = time();
 
           self::db()->insert('messages', [
@@ -114,7 +122,13 @@
           foreach ($tags as $tag) {
               if ((new \App\Class\User($tag))->userExists == true) {
 
-                  //TODO: add notifications
+                  \App\Class\Notification::create($tag,[
+                    "type"=>"reply",
+                    "title"=>"<b>" . $sender->basicInfo()['username'] . "</b> replied to your message",
+                    "subtitle"=>$subtitle,
+                    "link_text"=>$level_path['course_title'].">".$level_path['level_title'],
+                    "link_url"=>"/courses/".$level_path['course_slug']."/".$level_path['chapter_slug']."/".$level_path['level_slug']
+                  ]);
 
                   self::db()->insert('message_tags', [
                     "message_id"=>$message_id,

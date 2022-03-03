@@ -90,6 +90,22 @@ use Slim\Exception\HttpSpecializedException;
       }
 
 
+      public function unreadNotifications(Request $request)
+      {
+        return $this->jsonResponse([
+          "status"=>"success",
+          "count"=> \App\Class\Notification::unreadCount($request->getAttribute('user_id'))
+        ]);
+      }
+
+      public function listNotifications(Request $request)
+      {
+        return $this->jsonResponse([
+          "status"=>"success",
+          "notifications"=> \App\Class\Notification::list($request->getAttribute('user_id'))
+        ]);
+      }
+
       public function editProfile(Request $request)
       {
           $json = $this->jsonRequest($request);
@@ -139,4 +155,5 @@ use Slim\Exception\HttpSpecializedException;
             "status"=>"success"
           ]);
       }
+
   }

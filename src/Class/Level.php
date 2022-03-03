@@ -48,6 +48,11 @@
           }
       }
 
+      public function get_path()
+      {
+        return $this->db()->query("SELECT levels.title AS level_title, chapters.title AS chapter_title, courses.title AS course_title, levels.level_slug, chapters.chapter_slug, courses.course_slug FROM levels INNER JOIN chapters ON levels.chapter_id = chapters.chapter_id INNER JOIN courses ON chapters.course_id = courses.course_id WHERE level_id=?", [$this->level_id])[0];
+      }
+
       public function get_authors()
       {
           if ($this->authors == null) {

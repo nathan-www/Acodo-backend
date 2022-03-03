@@ -285,6 +285,10 @@ class AccountController extends Controller
               "error_message"=>"Old password incorrect"
             ]);
         } else {
+
+            //Log out of all account for security
+            $db->delete('sessions',['user_id'=>$request->getAttribute('user_id')]);
+
             $db->update('accounts', ["user_id"=>$request->getAttribute('user_id')], ["password_hash"=>password_hash($json['new_password'], PASSWORD_DEFAULT)]);
             return $this->jsonResponse([
               "status"=>"success",
