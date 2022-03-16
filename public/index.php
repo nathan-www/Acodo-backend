@@ -15,6 +15,7 @@ require __DIR__ . '/../env.php';
 //!!!!!!!
 
 $app = AppFactory::create();
+$app->setBasePath('/api');
 
 $app->options('/{routes:.+}', function ($request, $response, $args) {
     return $response;
