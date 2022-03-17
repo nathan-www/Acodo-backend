@@ -35,6 +35,8 @@ class Email
         foreach($obj['variables'] as $k=>$v){
           $body = str_replace("{{".$k."}}",$v,$body);
         }
+        $body = str_replace("{{domain}}",getenv("DOMAIN"),$body);
+
         $mail->isHTML(true);
         $mail->Subject = $obj['subject'];
         $mail->Body = $body;

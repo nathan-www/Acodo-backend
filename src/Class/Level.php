@@ -148,6 +148,6 @@
 
       public function get_messages($since=0)
       {
-          return array_map(fn ($e) => (new \App\Class\Message($e['message_id'])), $this->db()->query('SELECT message_id FROM Messages WHERE changed_timestamp>? AND level_id=?', [$since,$this->level_id]));
+          return array_map(fn ($e) => (new \App\Class\Message($e['message_id'])), $this->db()->query('SELECT message_id FROM messages WHERE changed_timestamp>? AND level_id=?', [$since,$this->level_id]));
       }
   }
