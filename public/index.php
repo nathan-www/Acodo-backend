@@ -1,5 +1,9 @@
 <?php
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
@@ -38,7 +42,7 @@ $app->add(function ($request, $handler) {
       $response->getBody()->write(json_encode([
         'status' => 'fail',
         'error' => 'Invalid CSRF token'
-      ]));
+      ]);
       return $response->withHeader('Content-type', 'application/json');
     }
 
