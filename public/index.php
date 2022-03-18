@@ -9,6 +9,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 use Slim\Routing\RouteCollectorProxy;
 use Slim\Factory\AppFactory;
+use Slim\Exception\HttpBadRequestException;
 
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../env.php';
@@ -38,12 +39,7 @@ $app->add(function ($request, $handler) {
     if($request->hasHeader('X-CSRF') && isset($_COOKIE['acodo_csrf_token']) && $request->getHeaderLine('X-CSRF') == $_COOKIE['acodo_csrf_token'] && strlen($_COOKIE['acodo_csrf_token']) > 5){
         $handler->handle($request);
     } else {
-      $response = new Response;
-      $response->getBody()->write(json_encode([
-        'status' => 'fail',
-        'error' => 'Invalid CSRF token'
-      ]));
-      return $response->withHeader('Content-type', 'application/json');
+      throw new HttpBadRequestException($request, "Invalid CSRF token");
     }
 });
 
