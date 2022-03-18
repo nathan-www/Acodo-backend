@@ -42,12 +42,10 @@ $app->add(function ($request, $handler) {
       $response->getBody()->write(json_encode([
         'status' => 'fail',
         'error' => 'Invalid CSRF token'
-      ]);
+      ]));
       return $response->withHeader('Content-type', 'application/json');
     }
-
-
-}
+});
 
 //Account routes
 $app->group('/account', function (RouteCollectorProxy $group) {
