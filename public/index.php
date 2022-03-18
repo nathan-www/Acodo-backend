@@ -10,13 +10,11 @@ require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../env.php';
 
 
-//!!!!!!!!
-//TODO: CSRF
-//!!!!!!!
-
 $app = AppFactory::create();
 $app->setBasePath('/api');
 
+
+/* For local testing
 $app->options('/{routes:.+}', function ($request, $response, $args) {
     return $response;
 });
@@ -28,7 +26,24 @@ $app->add(function ($request, $handler) {
             ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
             ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
 });
+*/
 
+/* CSRF protection */
+$app->add(function ($request, $handler) {
+
+    if($request->hasHeader('X-CSRF') && isset($_COOKIE['acodo_csrf_token']) && $request->getHeaderLine('X-CSRF') == $_COOKIE['acodo_csrf_token'] && strlen($_COOKIE['acodo_csrf_token']) > 5){
+        $handler->handle($request);
+    } else {
+      $response = new Response;
+      $response->getBody()->write(json_encode([
+        'status' => 'fail',
+        'error' => 'Invalid CSRF token'
+      ]));
+      return $response->withHeader('Content-type', 'application/json');
+    }
+
+
+}
 
 //Account routes
 $app->group('/account', function (RouteCollectorProxy $group) {
