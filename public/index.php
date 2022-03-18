@@ -39,6 +39,8 @@ $app->add(function ($request, $handler) {
     if($request->hasHeader('X-CSRF') && isset($_COOKIE['acodo_csrf_token']) && $request->getHeaderLine('X-CSRF') == $_COOKIE['acodo_csrf_token'] && strlen($_COOKIE['acodo_csrf_token']) > 5){
         $handler->handle($request);
     } else {
+      echo($_COOKIE['acodo_csrf_token']);
+      echo($request->getHeaderLine('X-CSRF'));
       throw new HttpBadRequestException($request, "Invalid CSRF token");
     }
 });
