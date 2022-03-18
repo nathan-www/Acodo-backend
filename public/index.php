@@ -1,9 +1,5 @@
 <?php
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
@@ -35,12 +31,9 @@ $app->add(function ($request, $handler) {
 
 /* CSRF protection */
 $app->add(function ($request, $handler) {
-
     if($request->hasHeader('X-CSRF') && isset($_COOKIE['acodo_csrf_token']) && $request->getHeaderLine('X-CSRF') == $_COOKIE['acodo_csrf_token'] && strlen($_COOKIE['acodo_csrf_token']) > 5){
-        $handler->handle($request);
+        return $handler->handle($request);
     } else {
-      echo($_COOKIE['acodo_csrf_token'] . "::");
-      echo($request->getHeaderLine('X-CSRF'));
       throw new HttpBadRequestException($request, "Invalid CSRF token");
     }
 });
