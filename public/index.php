@@ -8,7 +8,7 @@ use Slim\Factory\AppFactory;
 use Slim\Exception\HttpBadRequestException;
 
 require __DIR__ . '/../vendor/autoload.php';
-require __DIR__ . '/../env.php';
+require __DIR__ . '/../../env.php';
 
 
 $app = AppFactory::create();
