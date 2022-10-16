@@ -2,52 +2,49 @@
 
 namespace App\Controller;
 
-use Slim\Psr7\Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use Psr\Container\ContainerInterface;
-use Slim\Exception\HttpSpecializedException;
 
 class CoursesController extends Controller
 {
     public function listCourses(Request $request)
     {
         $db = new \App\Database\Database();
-        $courseRows = array_map(fn ($e) => new \App\Class\Course($e['course_id']), $db->query("SELECT course_id FROM courses"));
+        $courseRows = array_map(fn($e) => new \App\Class\Course($e['course_id']), $db->query("SELECT course_id FROM courses"));
 
         $session = \App\Class\Session::getSession();
 
         $courses = [];
 
-        if($session['authenticated']){
-          $user = new \App\Class\User($session['session']['user_id']);
+        if ($session['authenticated']) {
+            $user = new \App\Class\User($session['session']['user_id']);
         }
 
         foreach ($courseRows as $c) {
 
             $progress = 0;
-            if($session['authenticated']){
-              $progress = $user->get_course_progress($c->course_id);
+            if ($session['authenticated']) {
+                $progress = $user->get_course_progress($c->course_id);
             }
 
             $courses[] = [
-            "course_title"=>$c->title,
-            "course_slug"=>$c->slug,
-            "description"=>$c->description,
-            "thumbnail"=>$c->thumbnail,
-            "languages"=>$c->get_languages(),
-            "difficulty"=>$c->difficulty,
-            "authors"=>array_map(fn ($e) => $e->basicInfo(), $c->get_authors()),
-            "total_xp"=>$c->total_xp,
-            "duration_hours"=>$c->duration_hours,
-            "progress"=>$progress,
-            "enrolled"=> $session['authenticated'] && in_array($session['session']['user_id'], $c->get_enrollments()),
-            "total_enrollments" => count($c->get_enrollments())
-          ];
+                "course_title" => $c->title,
+                "course_slug" => $c->slug,
+                "description" => $c->description,
+                "thumbnail" => $c->thumbnail,
+                "languages" => $c->get_languages(),
+                "difficulty" => $c->difficulty,
+                "authors" => array_map(fn($e) => $e->basicInfo(), $c->get_authors()),
+                "total_xp" => $c->total_xp,
+                "duration_hours" => $c->duration_hours,
+                "progress" => $progress,
+                "enrolled" => $session['authenticated'] && in_array($session['session']['user_id'], $c->get_enrollments()),
+                "total_enrollments" => count($c->get_enrollments()),
+            ];
         }
 
         return $this->jsonResponse([
-          "status"=>"success",
-          "courses"=>$courses
+            "status" => "success",
+            "courses" => $courses,
         ]);
     }
 
@@ -57,7 +54,7 @@ class CoursesController extends Controller
 
         if (count($courseID) < 1) {
             return $this->jsonResponse([
-              "status"=>"fail"
+                "status" => "fail",
             ]);
         } else {
             $c = new \App\Class\Course($courseID[0]['course_id']);
@@ -65,55 +62,54 @@ class CoursesController extends Controller
 
             $chapters = array_merge(...array_map(function ($chapter) use ($session) {
                 return ([$chapter->slug => [
-                  "chapter_title" => $chapter->title,
-                  "chapter_slug" => $chapter->slug,
-                  "chapter_description" => $chapter->description,
-                  "levels" => array_merge(...array_map(function ($level) use ($session) {
-                      return ([$level->slug => [
-                      "level_title" => $level->title,
-                      "level_slug" => $level->slug,
-                      "difficulty" => $level->difficulty,
-                      "complete" => $session['authenticated'] && in_array($session['session']['user_id'], $level->get_completions()),
-                    ]]);
-                  }, $chapter->get_levels()))
-              ]]);
+                    "chapter_title" => $chapter->title,
+                    "chapter_slug" => $chapter->slug,
+                    "chapter_description" => $chapter->description,
+                    "levels" => array_merge(...array_map(function ($level) use ($session) {
+                        return ([$level->slug => [
+                            "level_title" => $level->title,
+                            "level_slug" => $level->slug,
+                            "difficulty" => $level->difficulty,
+                            "complete" => $session['authenticated'] && in_array($session['session']['user_id'], $level->get_completions()),
+                        ]]);
+                    }, $chapter->get_levels())),
+                ]]);
             }, $c->get_chapters()));
 
-
             return $this->jsonResponse([
-              "status"=>"success",
-              "course_title"=>$c->title,
-              "course_slug"=>$c->slug,
-              "description"=>$c->description,
-              "thumbnail"=>$c->thumbnail,
-              "languages"=>$c->get_languages(),
-              "difficulty"=>$c->difficulty,
-              "authors"=>array_map(fn ($e) => $e->basicInfo(), $c->get_authors()),
-              "total_xp"=>$c->total_xp,
-              "duration_hours"=>$c->duration_hours,
-              "enrolled"=> $session['authenticated'] && in_array($session['session']['user_id'], $c->get_enrollments()),
-              "total_enrollments" => count($c->get_enrollments()),
-              "chapters" => $chapters
-          ]);
+                "status" => "success",
+                "course_title" => $c->title,
+                "course_slug" => $c->slug,
+                "description" => $c->description,
+                "thumbnail" => $c->thumbnail,
+                "languages" => $c->get_languages(),
+                "difficulty" => $c->difficulty,
+                "authors" => array_map(fn($e) => $e->basicInfo(), $c->get_authors()),
+                "total_xp" => $c->total_xp,
+                "duration_hours" => $c->duration_hours,
+                "enrolled" => $session['authenticated'] && in_array($session['session']['user_id'], $c->get_enrollments()),
+                "total_enrollments" => count($c->get_enrollments()),
+                "chapters" => $chapters,
+            ]);
         }
     }
 
     public function courseEnroll(Request $request)
     {
-        $this->db()->delete('course_enrollments', ['course_id'=>$request->getAttribute('course_id'),'user_id'=>$request->getAttribute('user_id')]);
-        $this->db()->insert('course_enrollments', ['course_id'=>$request->getAttribute('course_id'),'user_id'=>$request->getAttribute('user_id')]);
+        $this->db()->delete('course_enrollments', ['course_id' => $request->getAttribute('course_id'), 'user_id' => $request->getAttribute('user_id')]);
+        $this->db()->insert('course_enrollments', ['course_id' => $request->getAttribute('course_id'), 'user_id' => $request->getAttribute('user_id')]);
 
         return $this->jsonResponse([
-          "status"=>"success"
+            "status" => "success",
         ]);
     }
 
     public function courseUnenroll(Request $request)
     {
-        $this->db()->delete('course_enrollments', ['course_id'=>$request->getAttribute('course_id'),'user_id'=>$request->getAttribute('user_id')]);
+        $this->db()->delete('course_enrollments', ['course_id' => $request->getAttribute('course_id'), 'user_id' => $request->getAttribute('user_id')]);
 
         return $this->jsonResponse([
-          "status"=>"success"
+            "status" => "success",
         ]);
     }
 
@@ -122,28 +118,27 @@ class CoursesController extends Controller
         $level = new \App\Class\Level($request->getAttribute('level_id'));
 
         return $this->jsonResponse([
-          "status"=>"success",
-          "level_title"=>$level->title,
-          "level_slug"=>$level->slug,
-          "authors"=>array_map(fn ($e) => $e->basicInfo(), $level->get_authors()),
-          "complete"=>in_array($request->getAttribute('user_id'), $level->get_completions()),
-          "forfeited"=>in_array($request->getAttribute('user_id'), $level->get_forfeited()),
-          "difficulty"=>$level->difficulty,
-          "language"=>$level->language,
-          "xp"=>$level->xp,
-          "brief"=>$level->get_brief(),
-          "solutions_count"=>count($level->get_solutions()),
-          "default_code"=>$level->get_default_code(),
-          "draft_code"=>[
-            "code"=>$level->get_user_draft($request->getAttribute('user_id'))['code'],
-            "timestamp"=>$level->get_user_draft($request->getAttribute('user_id'))['timestamp']
-          ],
-          "test_code"=>$level->get_test_code(),
-          "unit_tests"=>array_map(fn ($e) => array_slice($e, 1), $level->get_unit_tests()),
-          "feedback_test"=>$level->feedback_test
+            "status" => "success",
+            "level_title" => $level->title,
+            "level_slug" => $level->slug,
+            "authors" => array_map(fn($e) => $e->basicInfo(), $level->get_authors()),
+            "complete" => in_array($request->getAttribute('user_id'), $level->get_completions()),
+            "forfeited" => in_array($request->getAttribute('user_id'), $level->get_forfeited()),
+            "difficulty" => $level->difficulty,
+            "language" => $level->language,
+            "xp" => $level->xp,
+            "brief" => $level->get_brief(),
+            "solutions_count" => count($level->get_solutions()),
+            "default_code" => $level->get_default_code(),
+            "draft_code" => [
+                "code" => $level->get_user_draft($request->getAttribute('user_id'))['code'],
+                "timestamp" => $level->get_user_draft($request->getAttribute('user_id'))['timestamp'],
+            ],
+            "test_code" => $level->get_test_code(),
+            "unit_tests" => array_map(fn($e) => array_slice($e, 1), $level->get_unit_tests()),
+            "feedback_test" => $level->feedback_test,
         ]);
     }
-
 
     public function saveDraft(Request $request)
     {
@@ -153,7 +148,7 @@ class CoursesController extends Controller
         $level->set_user_draft($request->getAttribute('user_id'), base64_encode($json['code']));
 
         return $this->jsonResponse([
-          'status'=>'success'
+            'status' => 'success',
         ]);
     }
 
@@ -164,8 +159,8 @@ class CoursesController extends Controller
 
         if (in_array($request->getAttribute('user_id'), $level->get_completions())) {
             return $this->jsonResponse([
-              'status'=>'fail',
-              'error_message'=>'Level is already complete'
+                'status' => 'fail',
+                'error_message' => 'Level is already complete',
             ]);
         } else {
 
@@ -178,57 +173,53 @@ class CoursesController extends Controller
             }
 
             //Make sure user is enrolled on course
-            $this->db()->insert('course_enrollments',['course_id'=>$request->getAttribute('course_id'),'user_id'=>$request->getAttribute('user_id')]);
+            if (!in_array($request->getAttribute('course_id'), array_map(fn($e) => $e->course_id, $user->get_courses()))) {
+                $this->db()->insert('course_enrollments', ['course_id' => $request->getAttribute('course_id'), 'user_id' => $request->getAttribute('user_id')]);
+            }
 
-
-            $this->db()->insert('level_complete', ['level_id'=>$level->level_id,'user_id'=>$request->getAttribute('user_id'),'timestamp'=>time(),'xp'=>$xp_earned]);
-            $this->db()->update('accounts', ['user_id'=>$user->user['user_id']], ['xp'=>($user->user['xp'] + $xp_earned)]);
+            $this->db()->insert('level_complete', ['level_id' => $level->level_id, 'user_id' => $request->getAttribute('user_id'), 'timestamp' => time(), 'xp' => $xp_earned]);
+            $this->db()->update('accounts', ['user_id' => $user->user['user_id']], ['xp' => ($user->user['xp'] + $xp_earned)]);
             return $this->jsonResponse([
-              'status'=>'success'
+                'status' => 'success',
             ]);
         }
     }
-
 
     public function solutions(Request $request)
     {
         $level = new \App\Class\Level($request->getAttribute('level_id'));
 
-
         if (!in_array($request->getAttribute('user_id'), $level->get_forfeited())) {
             //Mark user as forfeited for this level
-            $this->db()->insert('level_forfeit', ['level_id'=>$level->level_id,'user_id'=>$request->getAttribute('user_id')]);
+            $this->db()->insert('level_forfeit', ['level_id' => $level->level_id, 'user_id' => $request->getAttribute('user_id')]);
         }
 
         return $this->jsonResponse([
-          "status"=>"success",
-          "solutions"=>array_map(function ($solution) use ($request) {
-              $user_vote = array_filter($solution->get_votes(), function ($e) use ($request) {
-                  return ($e['user_id']==$request->getAttribute('user_id'));
-              });
+            "status" => "success",
+            "solutions" => array_map(function ($solution) use ($request) {
+                $user_vote = array_filter($solution->get_votes(), function ($e) use ($request) {
+                    return ($e['user_id'] == $request->getAttribute('user_id'));
+                });
 
-              if (count($user_vote) < 1) {
-                  $user_vote = 0;
-              } else {
-                  $user_vote = +array_values($user_vote)[0]['vote'];
-              }
+                if (count($user_vote) < 1) {
+                    $user_vote = 0;
+                } else {
+                    $user_vote = +array_values($user_vote)[0]['vote'];
+                }
 
-              return [
-                "solution_id" => $solution->solution_id,
-                "user" => $solution->user->basicInfo(),
-                "timestamp" => +$solution->timestamp,
-                "upvotes" => count(array_filter($solution->get_votes(), fn ($e) => ($e['vote']=="1"))),
-                "downvotes" => count(array_filter($solution->get_votes(), fn ($e) => ($e['vote']=="-1"))),
-                "user_vote" => $user_vote,
-                "code" => $solution->code,
-                "badges" => $solution->get_badges()
-              ];
-          }, $level->get_solutions())
+                return [
+                    "solution_id" => $solution->solution_id,
+                    "user" => $solution->user->basicInfo(),
+                    "timestamp" => +$solution->timestamp,
+                    "upvotes" => count(array_filter($solution->get_votes(), fn($e) => ($e['vote'] == "1"))),
+                    "downvotes" => count(array_filter($solution->get_votes(), fn($e) => ($e['vote'] == "-1"))),
+                    "user_vote" => $user_vote,
+                    "code" => $solution->code,
+                    "badges" => $solution->get_badges(),
+                ];
+            }, $level->get_solutions()),
         ]);
     }
-
-
-
 
     public function submitSolution(Request $request)
     {
@@ -238,37 +229,35 @@ class CoursesController extends Controller
         if (in_array($request->getAttribute('user_id'), $level->get_forfeited())) {
             //User is forfeited and cannot submit any solutions
             return $this->jsonResponse([
-              "status"=>"fail",
-              "error_message"=>"You have forfeited this level and cannot submit a solution"
+                "status" => "fail",
+                "error_message" => "You have forfeited this level and cannot submit a solution",
             ]);
         }
 
         //Verification token to make abuse more difficult
         //TODO: Better solution?
-        if($json['v'] !== md5($json['code'] . "super_secret_salt_eq55M4Q2xQ" . $request->getAttribute('user_id'))){
+        if ($json['v'] !== md5($json['code'] . "super_secret_salt_eq55M4Q2xQ" . $request->getAttribute('user_id'))) {
 
 /*
-          print_r([
-            "v"=>$json['v'],
-            "code"=>$json['code'],
-            "md5"=>md5($json['code'] . "super_secret_salt_eq55M4Q2xQ")
-          ]);
-*/
+print_r([
+"v"=>$json['v'],
+"code"=>$json['code'],
+"md5"=>md5($json['code'] . "super_secret_salt_eq55M4Q2xQ")
+]);
+ */
 
-          return $this->jsonResponse([
-            "status"=>"fail",
-            "error_message"=>"Invalid solution"
-          ]);
+            return $this->jsonResponse([
+                "status" => "fail",
+                "error_message" => "Invalid solution",
+            ]);
         }
 
         \App\Class\Solution::submit($request->getAttribute('level_id'), $request->getAttribute('user_id'), base64_encode($json['code']));
 
         return $this->jsonResponse([
-          "status"=>"success"
+            "status" => "success",
         ]);
     }
-
-
 
     public function voteSolution(Request $request)
     {
@@ -277,19 +266,19 @@ class CoursesController extends Controller
 
         if (!$solution->solution_exists) {
             return $this->jsonResponse([
-              "status"=>"fail",
-              "error_message"=>"Invalid solution"
+                "status" => "fail",
+                "error_message" => "Invalid solution",
             ]);
         }
 
         /*
         if($solution->user->user['user_id'] == $request->getAttribute('user_id')){
-          return $this->jsonResponse([
-            "status"=>"fail",
-            "error_message"=>"You cannot vote on your own solution"
-          ]);
+        return $this->jsonResponse([
+        "status"=>"fail",
+        "error_message"=>"You cannot vote on your own solution"
+        ]);
         }
-        */
+         */
 
         if ($json['vote_type'] == 'main') {
             $solution->vote_solution($request->getAttribute('user_id'), $json['vote']);
@@ -298,11 +287,9 @@ class CoursesController extends Controller
         }
 
         return $this->jsonResponse([
-          "status"=>"success"
+            "status" => "success",
         ]);
     }
-
-
 
     public function messages(Request $request, $response, $args)
     {
@@ -310,8 +297,8 @@ class CoursesController extends Controller
 
         if (!preg_match("/^[0-9]{1,}$/", $args['since'])) {
             return $this->jsonResponse([
-              "status"=>"fail",
-              "error_message"=>"Invalid parameter 'since'"
+                "status" => "fail",
+                "error_message" => "Invalid parameter 'since'",
             ]);
         }
 
@@ -325,30 +312,30 @@ class CoursesController extends Controller
         }
 
         return $this->jsonResponse([
-          "status"=>"success",
-          "last_change"=>$last_timestamp,
-          "messages"=>array_map(function ($message) use ($request) {
+            "status" => "success",
+            "last_change" => $last_timestamp,
+            "messages" => array_map(function ($message) use ($request) {
 
-              $user_vote = array_filter($message->get_votes(), fn ($e) =>$e['user_id']==$request->getAttribute('user_id'));
-              if (count($user_vote) < 1) {
-                  $user_vote = 0;
-              } else {
-                  $user_vote = +$user_vote[0]['vote'];
-              }
+                $user_vote = array_filter($message->get_votes(), fn($e) => $e['user_id'] == $request->getAttribute('user_id'));
+                if (count($user_vote) < 1) {
+                    $user_vote = 0;
+                } else {
+                    $user_vote = +$user_vote[0]['vote'];
+                }
 
-              return [
-                "message_id"=>$message->message_id,
-                "user"=>$message->user->basicInfo(),
-                "message_content"=>$message->message_content,
-                "last_edited"=>$message->last_edited,
-                "created"=>$message->created,
-                "upvotes"=>count(array_filter($message->get_votes(), fn ($e) =>$e['vote']==1)),
-                "downvotes"=>count(array_filter($message->get_votes(), fn ($e) =>$e['vote']==-1)),
-                "user_vote"=>$user_vote,
-                "reply_to"=>$message->reply_to,
-                "tags"=>array_map(fn ($e) =>$e['user_id'], $message->get_tags()),
-              ];
-          }, $messages)
+                return [
+                    "message_id" => $message->message_id,
+                    "user" => $message->user->basicInfo(),
+                    "message_content" => $message->message_content,
+                    "last_edited" => $message->last_edited,
+                    "created" => $message->created,
+                    "upvotes" => count(array_filter($message->get_votes(), fn($e) => $e['vote'] == 1)),
+                    "downvotes" => count(array_filter($message->get_votes(), fn($e) => $e['vote'] == -1)),
+                    "user_vote" => $user_vote,
+                    "reply_to" => $message->reply_to,
+                    "tags" => array_map(fn($e) => $e['user_id'], $message->get_tags()),
+                ];
+            }, $messages),
         ]);
     }
 
@@ -358,14 +345,14 @@ class CoursesController extends Controller
         $tags = [];
 
         if (count($this->db()->query('SELECT message_id FROM messages WHERE edited_timestamp>=? AND user_id=?', [
-          (time()-2),
-          $request->getAttribute('user_id')
+            (time() - 2),
+            $request->getAttribute('user_id'),
         ])) > 0) {
             //Rate limit to 1 message every 2 seconds
             return $this->jsonResponse([
-            "status"=>"fail",
-            "error_message"=>"You are sending messages too fast"
-          ]);
+                "status" => "fail",
+                "error_message" => "You are sending messages too fast",
+            ]);
         }
 
         if (isset($json['reply_to'])) {
@@ -373,8 +360,8 @@ class CoursesController extends Controller
 
             if (!$reply_to->message_exists) {
                 return $this->jsonResponse([
-                  "status"=>"fail",
-                  "error_message"=>"The message you are replying to does not exist"
+                    "status" => "fail",
+                    "error_message" => "The message you are replying to does not exist",
                 ]);
             }
 
@@ -391,17 +378,15 @@ class CoursesController extends Controller
         }
 
         $tags = array_unique(array_filter($tags, function ($e) use ($request) {
-            return $e!==$request->getAttribute('user_id');
+            return $e !== $request->getAttribute('user_id');
         }));
 
         \App\Class\Message::send($request->getAttribute('user_id'), $request->getAttribute('level_id'), base64_encode($json['message_content']), $tags, $reply_to);
 
-
         return $this->jsonResponse([
-          "status"=>"success"
+            "status" => "success",
         ]);
     }
-
 
     public function editMessage(Request $request)
     {
@@ -410,22 +395,22 @@ class CoursesController extends Controller
 
         if (!$message->message_exists) {
             return $this->jsonResponse([
-              "status"=>"fail",
-              "error_message"=>"Message does not exist"
+                "status" => "fail",
+                "error_message" => "Message does not exist",
             ]);
         }
 
         if ($message->user->user['user_id'] !== $request->getAttribute('user_id')) {
             return $this->jsonResponse([
-            "status"=>"fail",
-            "error_message"=>"You do not have permission to edit this message"
-          ]);
+                "status" => "fail",
+                "error_message" => "You do not have permission to edit this message",
+            ]);
         }
 
         $message->edit(base64_encode($json['message_content']));
 
         return $this->jsonResponse([
-          "status"=>"success"
+            "status" => "success",
         ]);
     }
 
@@ -436,15 +421,15 @@ class CoursesController extends Controller
 
         if (!$message->message_exists) {
             return $this->jsonResponse([
-              "status"=>"fail",
-              "error_message"=>"Message does not exist"
+                "status" => "fail",
+                "error_message" => "Message does not exist",
             ]);
         }
 
         $message->vote($request->getAttribute('user_id'), $json['vote']);
 
         return $this->jsonResponse([
-          "status"=>"success"
+            "status" => "success",
         ]);
     }
 
@@ -455,22 +440,22 @@ class CoursesController extends Controller
 
         if (!$message->message_exists) {
             return $this->jsonResponse([
-              "status"=>"fail",
-              "error_message"=>"Message does not exist"
+                "status" => "fail",
+                "error_message" => "Message does not exist",
             ]);
         }
 
         if ($message->user->user['user_id'] !== $request->getAttribute('user_id')) {
             return $this->jsonResponse([
-            "status"=>"fail",
-            "error_message"=>"You do not have permission to delete this message"
-          ]);
+                "status" => "fail",
+                "error_message" => "You do not have permission to delete this message",
+            ]);
         }
 
         $message->delete();
 
         return $this->jsonResponse([
-          "status"=>"success"
+            "status" => "success",
         ]);
 
     }

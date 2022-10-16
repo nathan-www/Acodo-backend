@@ -25,23 +25,20 @@ class Database
     {
         $rows = [];
 
-        try {
+        $stmt = $this->db->prepare($stmt);
+        if (count($values) > 0) {
+            //Prepare statement
+            $stmt->bind_param(str_repeat("s", count($values)), ...$values);
+        }
 
-            $stmt = $this->db->prepare($stmt);
-            if (count($values) > 0) {
-                //Prepare statement
-                $stmt->bind_param(str_repeat("s", count($values)), ...$values);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if (!is_bool($result) && $result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $rows[] = $row;
             }
-
-            $stmt->execute();
-            $result = $stmt->get_result();
-
-            if (!is_bool($result) && $result->num_rows > 0) {
-                while ($row = $result->fetch_assoc()) {
-                    $rows[] = $row;
-                }
-            }
-        } catch (Exception $e) {}
+        }
 
         return $rows;
     }
