@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Database;
 
 class Database
@@ -22,50 +21,53 @@ class Database
         return $this->db;
     }
 
-    public function query($stmt, $values=[])
+    public function query($stmt, $values = [])
     {
-        $stmt = $this->db->prepare($stmt);
-        if (count($values) > 0) {
-            //Prepare statement
-            $stmt->bind_param(str_repeat("s", count($values)), ...$values);
-        }
-
-        $stmt->execute();
-        $result = $stmt->get_result();
-
         $rows = [];
-        if (!is_bool($result) && $result->num_rows > 0) {
-            while ($row = $result->fetch_assoc()) {
-                $rows[] = $row;
+
+        try {
+
+            $stmt = $this->db->prepare($stmt);
+            if (count($values) > 0) {
+                //Prepare statement
+                $stmt->bind_param(str_repeat("s", count($values)), ...$values);
             }
-        }
+
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if (!is_bool($result) && $result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                    $rows[] = $row;
+                }
+            }
+        } catch (Exception $e) {}
 
         return $rows;
     }
 
     public function insert($table, $data)
     {
-        $stmt = 'INSERT INTO ' . $table . ' (' . implode(",", array_keys($data)) . ') VALUES (' . substr(str_repeat("?,", count($data)), 0, -1) .') ';
+        $stmt = 'INSERT INTO ' . $table . ' (' . implode(",", array_keys($data)) . ') VALUES (' . substr(str_repeat("?,", count($data)), 0, -1) . ') ';
         return $this->query($stmt, array_values($data));
     }
 
     public function update($table, $where, $data)
     {
-        $stmt = 'UPDATE '.$table.' SET '.implode("=?, ", array_keys($data)) .'=? WHERE '.implode("=? AND ", array_keys($where)) . '=?';
+        $stmt = 'UPDATE ' . $table . ' SET ' . implode("=?, ", array_keys($data)) . '=? WHERE ' . implode("=? AND ", array_keys($where)) . '=?';
         return $this->query($stmt, array_merge(array_values($data), array_values($where)));
     }
 
-    public function select($table,$where)
+    public function select($table, $where)
     {
-        $stmt = 'SELECT * FROM '.$table.' WHERE ' . implode("=? AND ", array_keys($where)) . '=?';
+        $stmt = 'SELECT * FROM ' . $table . ' WHERE ' . implode("=? AND ", array_keys($where)) . '=?';
         return $this->query($stmt, array_values($where));
     }
 
-    public function delete($table,$where)
+    public function delete($table, $where)
     {
-        $stmt = 'DELETE FROM '.$table.' WHERE ' . implode("=? AND ", array_keys($where)) . '=?';
+        $stmt = 'DELETE FROM ' . $table . ' WHERE ' . implode("=? AND ", array_keys($where)) . '=?';
         return $this->query($stmt, array_values($where));
     }
-
 
 }
