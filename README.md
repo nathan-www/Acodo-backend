@@ -1,6 +1,6 @@
 # Acodo (backend)
 
-![](https://nathanarnold.co.uk/assets/acodo-img/acodo-main.png)
+![](https://nathanarnold.co.uk/assets/acodo-img/acodo-main.png##)
 
 Acodo is an online, interactive programming tutorial platform. 
 
