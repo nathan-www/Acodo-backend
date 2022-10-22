@@ -164,7 +164,8 @@ class AccountController extends Controller
         if (!$user->userExists) {
             return $this->jsonResponse([
               "status"=>"fail",
-              "error_message"=>"We couldn't find an account with that email/username"
+              "error_message"=>"We couldn't find an account with that email/username",
+              "prompt_create_account"=>true
             ]);
         }
 
